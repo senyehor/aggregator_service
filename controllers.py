@@ -42,8 +42,7 @@ class AggregationController:
             self.__run_aggregation_process()
             self.__save_aggregation_went_successfully()
             return 0
-        except AggregationError as e:
-            # logger.error(str(e))
+        except AggregationError:
             self.__save_aggregation_failed()
             return 1
 
