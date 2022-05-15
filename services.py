@@ -1,4 +1,3 @@
-import logger
 import platform
 import subprocess
 
