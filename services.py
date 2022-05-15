@@ -18,7 +18,7 @@ def execute_script_get_return_code(path: str):
         logger.info(f"got following output executing {path}:\n{output}")
     else:
         if error:
-            logger.error(f"got following error executing {path}:\b{error}")
+            logger.error(f"got following error executing {path}:\n{error}")
         else:
             logger.error(f"executing {path} just returned 1")
     return code
