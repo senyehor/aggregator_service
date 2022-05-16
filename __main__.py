@@ -1,19 +1,16 @@
-import os
-
-from aggregator.logger import logger
 from aggregator.aggregation_info import AggregationInfoJSONProcessor
 from aggregator.controllers import AggregationController, BoxListenerController
+from aggregator.logger import logger
 
 
 def main():
-    scripts_path = os.getenv("AGGREGATOR_SCRIPTS_PATH")
     controller = AggregationController(
         aggregation_info_file_name="aggregation_info",
-        run_aggregation_script_name=f"{scripts_path}/run_aggregator",
+        run_aggregation_script_name="run_aggregator",
         aggregation_info_processor=AggregationInfoJSONProcessor(),
         packet_listener_controller=BoxListenerController(
-            f"{scripts_path}/stop_box_listener",
-            f"{scripts_path}/resume_box_listener"
+            "stop_box_listener",
+            "resume_box_listener"
         )
     )
     logger.info("starting aggregation")
