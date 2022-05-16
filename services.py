@@ -10,16 +10,16 @@ def execute_script_get_return_code(script_name: str):
     with subprocess.Popen(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE) as p:
         try:
             code = p.wait(timeout=30)
-            output = p.stdout.read()
-            error = p.stderr.read()
+            output = p.stdout.read().decode("utf-8")
+            error = p.stderr.read().decode("utf-8")
         except:  # noqa Including KeyboardInterrupt, wait handled that.
             p.kill()
             raise
     if code == 0:
-        logger.info(f"got following output executing {script_name}:\n{output}")
+        logger.info(f"got following output executing {script_name}:\n{str(output)}")
     else:
         if error:
-            logger.error(f"got following error executing {script_name}:\n{error}")
+            logger.error(f"got following error executing {script_name}:\n{str(error)}")
         else:
             logger.error(f"executing {script_name} just returned {code}")
     return code
