@@ -5,13 +5,16 @@ from pathlib import Path
 from aggregator.logger import logger
 
 
-def execute_script_get_return_code(script_name: str):
+def execute_script_get_return_code(script_name: str) -> int:
     args = compose_args_to_run_script_for_system(script_name)
     with subprocess.Popen(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE) as p:
         try:
-            code = p.wait(timeout=30)
+            code = p.wait(timeout=10 * 60)
             output = p.stdout.read().decode("utf-8")
             error = p.stderr.read().decode("utf-8")
+        except subprocess.TimeoutExpired:
+            logger.error("aggregator took too long")
+            return 408
         except:  # noqa Including KeyboardInterrupt, wait handled that.
             p.kill()
             raise
