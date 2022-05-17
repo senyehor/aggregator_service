@@ -16,7 +16,7 @@ logger.setLevel(level)
 formatter = ColoredFormatter()
 
 handlers: list[logging.Handler] = [
-    logging.FileHandler(Path.cwd().joinpath(".log")),
+    logging.FileHandler(Path(__file__).parent.joinpath(".log")),
     logging.StreamHandler()
 ]
 if not logger.handlers:
