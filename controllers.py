@@ -1,6 +1,6 @@
 from aggregator.aggregation_info import AggregationInfoJSONProcessor, AggregationInfo, ParsingAggregationInfoError
 from aggregator.logger import logger
-from aggregator.services import execute_script_get_return_code
+from aggregator.services import execute_script
 
 
 class BoxListenerController:
@@ -10,14 +10,16 @@ class BoxListenerController:
 
     def __stop_box_listener(self):
         logger.debug("trying to stop box listener")
-        code = execute_script_get_return_code(self.__stop_box_listener_script_name)
-        if code != 0:
+        execution_result = execute_script(self.__stop_box_listener_script_name, timeout_seconds=60)
+        if not execution_result.successful:
+            logger.error(str(execution_result))
             raise BoxListenerControlError(stop_fail=True)
 
     def __resume_box_listener(self):
         logger.debug("trying to resume box listener")
-        code = execute_script_get_return_code(self.__resume_box_listener_script_name)
-        if code != 0:
+        execution_result = execute_script(self.__resume_box_listener_script_name, timeout_seconds=60)
+        if not execution_result.successful:
+            logger.error(str(execution_result))
             raise BoxListenerControlError(stop_fail=True)
 
     def __enter__(self):
@@ -85,7 +87,7 @@ class AggregationController:
 
     def __run_aggregator(self) -> int:
         logger.debug("trying to start aggregation")
-        return execute_script_get_return_code(f"./{self.__run_aggregation_script_name}")
+        return execute_script(f"./{self.__run_aggregation_script_name}")
 
     def __save_aggregation_failed(self):
         info_aggregation_failed = AggregationInfo(failed=True)
