@@ -16,6 +16,7 @@ class ScriptExecutionResult:
         if self.__code is None:
             raise ValueError("script should necessarily return some code")
         if self.__code == 0 and self.__error_output:
+            logger.error(f"error output {self.error_output}")
             raise ValueError("success code is 0 but error output is present")
 
     @property
