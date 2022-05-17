@@ -14,6 +14,7 @@ class BoxListenerController:
         if not execution_result.successful:
             logger.error(execution_result)
             raise BoxListenerControlError(stop_fail=True)
+        logger.debug("stopped box listener")
 
     def __resume_box_listener(self):
         logger.debug("trying to resume box listener")
@@ -21,6 +22,7 @@ class BoxListenerController:
         if not execution_result.successful:
             logger.error(execution_result)
             raise BoxListenerControlError(resume_fail=True)
+        logger.debug("resumed box listener")
 
     def __enter__(self):
         self.__stop_box_listener()
