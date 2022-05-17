@@ -14,6 +14,7 @@ class BoxListenerController:
         if not execution_result.successful:
             logger.error(execution_result)
             raise BoxListenerControlError(stop_fail=True)
+        logger.debug("stopped box listener")
 
     def __resume_box_listener(self):
         logger.debug("trying to resume box listener")
@@ -21,6 +22,7 @@ class BoxListenerController:
         if not execution_result.successful:
             logger.error(execution_result)
             raise BoxListenerControlError(resume_fail=True)
+        logger.debug("resumed box listener")
 
     def __enter__(self):
         self.__stop_box_listener()
@@ -61,6 +63,7 @@ class AggregationController:
             with self.__packet_listener_controller:
                 logger.debug("trying to start aggregation")
                 running_result = self.__run_aggregator()
+                logger.debug("aggregation was run")
                 if not running_result.successful:
                     logger.error(running_result)
                     raise AggregationError("error happened while running aggregator")
