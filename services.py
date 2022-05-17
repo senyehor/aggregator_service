@@ -6,17 +6,15 @@ from aggregator.logger import logger
 
 
 class ScriptExecutionResult:
-    def __init__(self, code: int, success_output: str = "", error_output: str = ""):
+    def __init__(self, code: int, output: str = "", error_output: str = ""):
         self.__code = code
-        self.__success_output = success_output
-        self.__error_output = error_output
+        self.__output = output.strip()
+        self.__error_output = error_output.strip()
         self.__validate()
 
     def __validate(self):
         if self.__code is None:
             raise ValueError("script should necessarily return some code")
-        if self.__success_output and self.__error_output:
-            raise ValueError("script cannot return success and error output at the same time")
         if self.__code == 0 and self.__error_output:
             raise ValueError("success code is 0 but error output is present")
 
@@ -25,8 +23,8 @@ class ScriptExecutionResult:
         return self.__code
 
     @property
-    def success_output(self) -> str:
-        return self.__success_output
+    def output(self) -> str:
+        return self.__output
 
     @property
     def error_output(self) -> str:
@@ -36,11 +34,15 @@ class ScriptExecutionResult:
     def successful(self) -> bool:
         return self.__code == 0
 
-    @property
     def __repr__(self) -> str:
-        if self.__code == 0:
-            return f"{self.__success_output} with code {self.__code}"
-        return f"{self.__error_output} with code {self.__code}"
+        result_verbose = "succeeded" if self.successful else "failed" + f" with code {self.__code}"
+        output = f" with output:\n{self.__output}" if self.__output else ""
+        error = f" with error:\n{self.__error_output}" if self.__error_output else ""
+        if output:
+            result_verbose += output
+        if error:
+            result_verbose += error
+        return result_verbose
 
 
 def execute_script(script_name: str, timeout_seconds: float) -> ScriptExecutionResult:
@@ -50,13 +52,14 @@ def execute_script(script_name: str, timeout_seconds: float) -> ScriptExecutionR
             code = p.wait(timeout=timeout_seconds)
             output = p.stdout.read().decode("utf-8")
             error = p.stderr.read().decode("utf-8")
+            p.stderr.flush()
+            p.stdout.flush()
         except subprocess.TimeoutExpired:
             return ScriptExecutionResult(code=code, error_output=f"timeout reached for {script_name}")
         except:  # noqa Including KeyboardInterrupt, wait handled that.
             p.kill()
             raise
-    return ScriptExecutionResult(code, success_output=output) if output \
-        else ScriptExecutionResult(code, error_output=error)
+    return ScriptExecutionResult(code, output=output, error_output=error)
 
 
 def check_is_windows() -> bool:

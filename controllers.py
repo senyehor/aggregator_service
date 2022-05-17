@@ -1,6 +1,6 @@
 from aggregator.aggregation_info import AggregationInfoJSONProcessor, AggregationInfo, ParsingAggregationInfoError
 from aggregator.logger import logger
-from aggregator.services import execute_script
+from aggregator.services import execute_script, ScriptExecutionResult
 
 
 class BoxListenerController:
@@ -12,15 +12,15 @@ class BoxListenerController:
         logger.debug("trying to stop box listener")
         execution_result = execute_script(self.__stop_box_listener_script_name, timeout_seconds=60)
         if not execution_result.successful:
-            logger.error(str(execution_result))
+            logger.error(execution_result)
             raise BoxListenerControlError(stop_fail=True)
 
     def __resume_box_listener(self):
         logger.debug("trying to resume box listener")
         execution_result = execute_script(self.__resume_box_listener_script_name, timeout_seconds=60)
         if not execution_result.successful:
-            logger.error(str(execution_result))
-            raise BoxListenerControlError(stop_fail=True)
+            logger.error(execution_result)
+            raise BoxListenerControlError(resume_fail=True)
 
     def __enter__(self):
         self.__stop_box_listener()
@@ -43,9 +43,11 @@ class AggregationController:
         try:
             self.__run_aggregation_process()
             self.__save_aggregation_went_successfully()
+            logger.debug("saved aggregation succeeded")
             return 0
         except AggregationError:
             self.__save_aggregation_failed()
+            logger.debug("saved aggregation failed")
             return 1
 
     def __run_aggregation_process(self):
@@ -57,10 +59,11 @@ class AggregationController:
         logger.debug("previous aggregation not found or was successful")
         try:
             with self.__packet_listener_controller:
-                code = self.__run_aggregator()
-                if code != 0:
-                    logger.error(f"failed to aggregate with return code {code}")
-                    raise AggregationError("aggregator return code was not 0")
+                logger.debug("trying to start aggregation")
+                running_result = self.__run_aggregator()
+                if not running_result.successful:
+                    logger.error(running_result)
+                    raise AggregationError("error happened while running aggregator")
                 return
         except BoxListenerControlError as e:
             logger.error(msg=f"error happened while controlling box listener {e}")
@@ -76,7 +79,7 @@ class AggregationController:
                         return aggregation_info
                     except ParsingAggregationInfoError:
                         logger.error("failed to parse previous aggregation attempt data")
-                        exit(1)
+                        raise
         except FileNotFoundError:  # case when there were no previous aggregation attempts
             return None
 
@@ -85,19 +88,20 @@ class AggregationController:
             previous_aggregation_info: AggregationInfo) -> bool:
         return not previous_aggregation_info or previous_aggregation_info.success
 
-    def __run_aggregator(self) -> int:
-        logger.debug("trying to start aggregation")
-        return execute_script(f"./{self.__run_aggregation_script_name}")
+    def __run_aggregator(self) -> ScriptExecutionResult:
+        twenty_three_hours_fifty_minutes_in_seconds = 23 * 60 * 60 + 50 * 60
+        return execute_script(
+            self.__run_aggregation_script_name,
+            timeout_seconds=twenty_three_hours_fifty_minutes_in_seconds
+        )
 
     def __save_aggregation_failed(self):
         info_aggregation_failed = AggregationInfo(failed=True)
         self.__save_aggregation_info(info_aggregation_failed)
-        logger.debug("saved aggregation failed")
 
     def __save_aggregation_went_successfully(self):
         info_aggregation_success = AggregationInfo(success=True)
         self.__save_aggregation_info(info_aggregation_success)
-        logger.debug("saved aggregation succeeded")
 
     def __save_aggregation_info(self, aggregation_info: AggregationInfo):
         with open(self.__aggregation_info_file_name, "w") as file:
@@ -105,7 +109,6 @@ class AggregationController:
 
 
 class BoxListenerControlError(Exception):
-
     def __init__(self, stop_fail: bool = False, resume_fail: bool = False, *args: object) -> None:
         if stop_fail and resume_fail:
             raise ValueError("both stop_fail and resume_fail cannot be true")
