@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from aggregator.aggregation_info import AggregationInfoJSONProcessor
 from aggregator.controllers import AggregationController, BoxListenerController
 from aggregator.logger import logger
@@ -5,7 +7,7 @@ from aggregator.logger import logger
 
 def main():
     controller = AggregationController(
-        aggregation_info_file_name="aggregation_info",
+        aggregation_info_file_path=str(Path.cwd().joinpath("aggregation_info")),
         run_aggregation_script_name="run_aggregator",
         aggregation_info_processor=AggregationInfoJSONProcessor(),
         packet_listener_controller=BoxListenerController(

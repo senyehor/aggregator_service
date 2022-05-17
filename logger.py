@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 
 class ColoredFormatter(logging.Formatter):
@@ -15,7 +16,7 @@ logger.setLevel(level)
 formatter = ColoredFormatter()
 
 handlers: list[logging.Handler] = [
-    logging.FileHandler(".log"),
+    logging.FileHandler(Path.cwd().joinpath(".log")),
     logging.StreamHandler()
 ]
 if not logger.handlers:

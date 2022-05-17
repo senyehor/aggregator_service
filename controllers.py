@@ -31,11 +31,11 @@ class BoxListenerController:
 
 class AggregationController:
     def __init__(self,
-                 aggregation_info_file_name: str, run_aggregation_script_name: str,
+                 aggregation_info_file_path: str, run_aggregation_script_name: str,
                  packet_listener_controller: BoxListenerController,
                  aggregation_info_processor: AggregationInfoJSONProcessor) -> None:
         self.__aggregation_info_json_processor = aggregation_info_processor
-        self.__aggregation_info_file_name = aggregation_info_file_name
+        self.__aggregation_info_file_path = aggregation_info_file_path
         self.__run_aggregation_script_name = run_aggregation_script_name
         self.__packet_listener_controller = packet_listener_controller
 
@@ -71,7 +71,7 @@ class AggregationController:
 
     def __get_previous_aggregation_info(self) -> AggregationInfo | None:
         try:
-            with open(self.__aggregation_info_file_name, "r") as file:
+            with open(self.__aggregation_info_file_path, "r") as file:
                 raw_data = file.read()
                 if raw_data:
                     try:
@@ -104,7 +104,7 @@ class AggregationController:
         self.__save_aggregation_info(info_aggregation_success)
 
     def __save_aggregation_info(self, aggregation_info: AggregationInfo):
-        with open(self.__aggregation_info_file_name, "w") as file:
+        with open(self.__aggregation_info_file_path, "w") as file:
             file.write(self.__aggregation_info_json_processor.encode(aggregation_info))
 
 
