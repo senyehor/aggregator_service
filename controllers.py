@@ -63,10 +63,10 @@ class AggregationController:
             with self.__packet_listener_controller:
                 logger.debug("trying to start aggregation")
                 running_result = self.__run_aggregator()
-                logger.debug("aggregation was run")
                 if not running_result.successful:
                     logger.error(running_result)
                     raise AggregationError("error happened while running aggregator")
+                logger.debug("aggregation was successfully run")
                 return
         except BoxListenerControlError as e:
             logger.error(msg=f"error happened while controlling box listener {e}")
