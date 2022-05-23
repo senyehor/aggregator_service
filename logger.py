@@ -1,6 +1,5 @@
 import logging
-
-from aggregator.services import get_module_dir
+from pathlib import Path
 
 
 class ColoredFormatter(logging.Formatter):
@@ -17,7 +16,7 @@ logger.setLevel(level)
 formatter = ColoredFormatter()
 
 handlers: list[logging.Handler] = [
-    logging.FileHandler(get_module_dir().joinpath(".log")),
+    logging.FileHandler(Path(__file__).parent.joinpath(".log")),
     logging.StreamHandler()
 ]
 if not logger.handlers:
