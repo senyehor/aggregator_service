@@ -10,7 +10,7 @@ class BoxListenerController:
 
     def __stop_box_listener(self):
         logger.debug("trying to stop box listener")
-        execution_result = execute_script(self.__stop_box_listener_script_name, timeout_seconds=60)
+        execution_result = execute_script(self.__stop_box_listener_script_name, timeout_seconds=60, include_output=True)
         if not execution_result.successful:
             logger.error(execution_result)
             raise BoxListenerControlError(stop_fail=True)
@@ -18,7 +18,8 @@ class BoxListenerController:
 
     def __resume_box_listener(self):
         logger.debug("trying to resume box listener")
-        execution_result = execute_script(self.__resume_box_listener_script_name, timeout_seconds=60)
+        execution_result = execute_script(self.__resume_box_listener_script_name, timeout_seconds=60,
+                                          include_output=True)
         if not execution_result.successful:
             logger.error(execution_result)
             raise BoxListenerControlError(resume_fail=True)

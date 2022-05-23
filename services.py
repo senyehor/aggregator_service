@@ -43,15 +43,18 @@ class ScriptExecutionResult:
         return result_verbose
 
 
-def execute_script(script_name: str, timeout_seconds: float) -> ScriptExecutionResult:
+def execute_script(script_name: str, timeout_seconds: float, include_output: bool = False) -> ScriptExecutionResult:
     args = compose_args_to_run_script_for_system(script_name)
     with subprocess.Popen(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE) as p:
         try:
             code = p.wait(timeout=timeout_seconds)
-            output = p.stdout.read().decode("utf-8")
-            error = p.stderr.read().decode("utf-8")
-            p.stderr.flush()
-            p.stdout.flush()
+            if include_output:
+                output = p.stdout.read().decode("utf-8")
+                error = p.stderr.read().decode("utf-8")
+                p.stderr.flush()
+                p.stdout.flush()
+            else:
+                output = error = ""
         except subprocess.TimeoutExpired:
             return ScriptExecutionResult(code=code, error_output=f"timeout reached for {script_name}")
         except:  # noqa Including KeyboardInterrupt, wait handled that.
@@ -78,6 +81,7 @@ def compose_args_to_run_script_for_system(script_name: str) -> list[str]:
         return [str(script_path)]
     logger.error("unexpected system, exiting")
     exit(1)
+
 
 def get_module_dir() -> Path:
     return Path(__file__).parent
