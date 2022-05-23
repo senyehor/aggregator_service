@@ -45,24 +45,16 @@ class ScriptExecutionResult:
 
 def execute_script(script_name: str, timeout_seconds: float, include_output: bool = False) -> ScriptExecutionResult:
     args = compose_args_to_run_script_for_system(script_name)
-    with subprocess.Popen(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE) as p:
-        try:
-            logger.info(f"started executing {script_name}")
-            code = p.wait(timeout=timeout_seconds)
-            logger.info(f"finished executing {script_name}")
-            if include_output:
-                output = p.stdout.read().decode("utf-8")
-                error = p.stderr.read().decode("utf-8")
-                p.stderr.flush()
-                p.stdout.flush()
-            else:
-                output = error = ""
-        except subprocess.TimeoutExpired:
-            return ScriptExecutionResult(code=code, error_output=f"timeout reached for {script_name}")
-        except:  # noqa Including KeyboardInterrupt, p.wait handled that.
-            p.kill()
-            raise
-    return ScriptExecutionResult(code, output=output, error_output=error)
+    output_method = subprocess.PIPE if include_output else None
+    try:
+        logger.debug(f"launched {script_name}")
+        result = subprocess.run(args=args, timeout=timeout_seconds, stderr=output_method, stdout=output_method)
+        logger.debug(f"finished {script_name}")
+        script_stdout = result.stdout.decode("utf-8") if result.stdout else ""
+        script_stderr = result.stderr.decode("utf-8") if result.stderr else ""
+    except subprocess.TimeoutExpired:
+        return ScriptExecutionResult(code=124, error_output=f"timeout reached for {script_name}")
+    return ScriptExecutionResult(code=result.returncode, output=script_stdout, error_output=script_stderr)
 
 
 def check_is_windows() -> bool:
@@ -75,7 +67,6 @@ def check_is_linux() -> bool:
 
 def compose_args_to_run_script_for_system(script_name: str) -> list[str]:
     if check_is_windows():
-        # I could not figure out how to make bash work with windows paths
         return ["bash.exe", f"./scripts/{script_name}"]
     if check_is_linux():
         script_directory_path = Path(__file__).parent.joinpath("scripts")
