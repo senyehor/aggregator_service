@@ -78,3 +78,6 @@ def compose_args_to_run_script_for_system(script_name: str) -> list[str]:
         return [str(script_path)]
     logger.error("unexpected system, exiting")
     exit(1)
+
+def get_module_dir() -> Path:
+    return Path(__file__).parent
