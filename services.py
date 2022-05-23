@@ -47,7 +47,9 @@ def execute_script(script_name: str, timeout_seconds: float, include_output: boo
     args = compose_args_to_run_script_for_system(script_name)
     with subprocess.Popen(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE) as p:
         try:
+            logger.info(f"started executing {script_name}")
             code = p.wait(timeout=timeout_seconds)
+            logger.info(f"finished executing {script_name}")
             if include_output:
                 output = p.stdout.read().decode("utf-8")
                 error = p.stderr.read().decode("utf-8")
@@ -57,7 +59,7 @@ def execute_script(script_name: str, timeout_seconds: float, include_output: boo
                 output = error = ""
         except subprocess.TimeoutExpired:
             return ScriptExecutionResult(code=code, error_output=f"timeout reached for {script_name}")
-        except:  # noqa Including KeyboardInterrupt, wait handled that.
+        except:  # noqa Including KeyboardInterrupt, p.wait handled that.
             p.kill()
             raise
     return ScriptExecutionResult(code, output=output, error_output=error)
